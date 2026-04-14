@@ -1,5 +1,5 @@
 #include <fcntl.h>
-#include <linux/videodev2.h>
+#include "videodev2_cn.h" // 切换到中文参考版头文件
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -16,29 +16,29 @@ int main() {
   // --- 1. 环境准备 ---
   int video_fd = open(VIDEO_PATH, O_RDWR); // 打开摄像头
 
-  struct v4l2_format video_fmt;
-  struct v4l2_requestbuffers video_req;
-  struct v4l2_buffer video_buf;
+  struct v4l2_format_cn video_fmt;          // 使用中文版格式结构体
+  struct v4l2_requestbuffers_cn video_req;  // 使用中文版申请缓冲区结构体
+  struct v4l2_buffer_cn video_buf;          // 使用中文版缓冲区详情结构体
 
   // --- 2. 格式设置 ---
   memset(&video_fmt, 0, sizeof(video_fmt));
-  video_fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  video_fmt.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_CN; // 使用中文版枚举值
   video_fmt.fmt.pix.width = VIDEO_WIDTH;
   video_fmt.fmt.pix.height = VIDEO_HEIGHT;
-  video_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV; // 设置为 YUYV 原始数据格式
-  video_fmt.fmt.pix.field = V4L2_FIELD_INTERLACED;
+  video_fmt.fmt.pix.pixelformat = V4L2_PIX_FMT_YUYV_CN; // 使用中文版格式宏
+  video_fmt.fmt.pix.field = V4L2_FIELD_INTERLACED_CN;
   ioctl(video_fd, VIDIOC_S_FMT, &video_fmt);         // 告知驱动我们需要这种格式
 
   // --- 3. 申请并查询内核对应的缓冲区 ---
   memset(&video_req, 0, sizeof(video_req));
   video_req.count = 1;
-  video_req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  video_req.memory = V4L2_MEMORY_MMAP;
+  video_req.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_CN;
+  video_req.memory = V4L2_MEMORY_MMAP_CN;
   ioctl(video_fd, VIDIOC_REQBUFS, &video_req);       // 申请 1 个视频帧缓冲区
 
   memset(&video_buf, 0, sizeof(video_buf));
-  video_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
-  video_buf.memory = V4L2_MEMORY_MMAP;
+  video_buf.type = V4L2_BUF_TYPE_VIDEO_CAPTURE_CN;
+  video_buf.memory = V4L2_MEMORY_MMAP_CN;
   video_buf.index = 0;
   ioctl(video_fd, VIDIOC_QUERYBUF, &video_buf);      // 查询申请到的缓冲区具体信息（长度、地址等）
 
@@ -49,7 +49,7 @@ int main() {
   // --- 5. 开始运转数据流 ---
   ioctl(video_fd, VIDIOC_QBUF, &video_buf);          // 把空的缓冲区丢给内核（排队等待装载数据）
 
-  enum v4l2_buf_type type = V4L2_BUF_TYPE_VIDEO_CAPTURE;
+  enum v4l2_buf_type_cn type = V4L2_BUF_TYPE_VIDEO_CAPTURE_CN;
   ioctl(video_fd, VIDIOC_STREAMON, &type);           // 开启摄像头数据流，传送带开始工作
 
   // --- 6. 捕捉一帧图像 ---
@@ -69,6 +69,6 @@ int main() {
   munmap(fb_addr, video_buf.length);                 // 解除内存映射
   close(video_fd);                                   // 关闭设备
 
-  printf("程序运行成功，请检查当前目录下的 capture.raw 文件。\n");
+  printf("程序运行成功，已捕捉一帧图像至 capture.raw。\n");
   return 0;
 }
